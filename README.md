@@ -1,3 +1,3 @@
-# node-es6-seed
+# PhotoViewJS
 
-> Build node module with ES6, Babel and Webpack
+> Description

@@ -1,3 +1,7 @@
+var webpack = require('webpack');
+var provider = new webpack.ProvidePlugin({
+    "jquery": "jQuery"
+});
 module.exports = {
     entry: './index.js',
     target: 'node',
@@ -6,11 +10,13 @@ module.exports = {
         filename: 'build.js',
         libraryTarget: 'umd'
     },
+    devtool: 'source-map',
     module: {
         loaders: [{
             test: /\.js$/,
             loader: 'babel',
             exclude: /node_modules/
         }]
-    }
+    },
+    plugins: [ provider ]
 }

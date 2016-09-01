@@ -1,5 +1,5 @@
 {
-    "moduleId": "myModule",
+    "moduleId": "ImageZoom",
     "presets": ["es2015", "stage-0"],
     "plugins": ["add-module-exports"]
 }
