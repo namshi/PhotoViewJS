@@ -1,7 +1,7 @@
 {
-  "name": "ImageZoom",
+  "name": "PhotoView",
   "version": "1.0.0",
-  "description": "ImageZoom - Pan, PinchZoom and Swipe for mobile",
+  "description": "PhotoView - Pan, PinchZoom and Swipe for mobile",
   "main": "dist/build.js",
   "scripts": {
     "start": "webpack -w",
@@ -15,18 +15,21 @@
     "url": "git+https://github.com/namshi/node-es6-seed.git"
   },
   "keywords": [
-    "imageZoom",
+    "PhotoView",
     "pan",
     "pinchZoom",
+    "pinch-to-zoom",
     "swipe",
+    "swag",
+    "namshi",
     "mobile-carousel"
   ],
   "author": "Shidhin CR <shidhincr@gmail.com>",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/namshi/node-es6-seed/issues"
+    "url": "https://github.com/namshi/PhotoViewJS/issues"
   },
-  "homepage": "https://github.com/namshi/node-es6-seed#readme",
+  "homepage": "https://github.com/namshi/PhotoViewJS#readme",
   "devDependencies": {
     "ava": "^0.15.2",
     "babel-eslint": "^6.1.2",
