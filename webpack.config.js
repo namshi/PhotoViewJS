@@ -16,5 +16,5 @@ module.exports = {
             exclude: /node_modules/
         }]
     },
-    plugins: [ provider ]
+    plugins: []
 }
