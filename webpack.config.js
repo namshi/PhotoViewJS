@@ -1,7 +1,5 @@
 var webpack = require('webpack');
-var provider = new webpack.ProvidePlugin({
-    "jquery": "jQuery"
-});
+
 module.exports = {
     entry: './index.js',
     target: 'node',
@@ -18,5 +16,5 @@ module.exports = {
             exclude: /node_modules/
         }]
     },
-    plugins: [ provider ]
+    plugins: []
 }
