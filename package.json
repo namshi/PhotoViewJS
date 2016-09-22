@@ -4,7 +4,7 @@
   "description": "PhotoView - Pan, PinchZoom and Swipe for mobile",
   "main": "dist/build.js",
   "scripts": {
-    "start": "webpack -w",
+    "start": "webpack --progress --colors --watch",
     "build": "webpack -p",
     "test": "ava tests/**/*.js",
     "test-w": "ava -w tests/**/*.js",

@@ -9,6 +9,7 @@ module.exports = {
         libraryTarget: 'umd'
     },
     devtool: 'source-map',
+    cache: true,
     module: {
         loaders: [{
             test: /\.js$/,
