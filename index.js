@@ -23,7 +23,7 @@ class PhotoViewManager {
       return;
     }
 
-    this._manager = new Hammer.Manager(this.image);
+    this._manager = new Hammer.Manager(this.image, {touchAction: 'pan-y'});
     this._registerGestures();
     this._registerEvents();
     this.scale = 1;
@@ -66,6 +66,7 @@ class PhotoViewManager {
       }
 
       e.srcEvent.stopPropagation();
+      e.srcEvent.preventDefault();
 
       this.currentDeltaX = ( isNaN(this.deltaX) ? 0 : this.deltaX ) + e.deltaX;
       this.currentDeltaY = ( isNaN(this.deltaY) ? 0 : this.deltaY ) + e.deltaY;

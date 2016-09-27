@@ -1,13 +1,14 @@
-.test {
+.photo-view {
   width: 400px;
   height: 400px;
-  background-color: darkcyan;
+  background-color: #607D8B;
   border: 1px solid #000;
   box-sizing: border-box;
   position: relative;
-  overflow: scroll;
+  margin-top: 50px;
+  overflow: hidden;
 }
-.test img {
+.photo-view img {
   position: absolute;
   top: 0; right: 0; bottom: 0; left: 0;
   margin: auto;
@@ -16,17 +17,4 @@
   max-height: 100%;
   /*transform-origin: 0 0;*/
   will-change: transform;
-}
-
-.dot {
-  position: absolute;
-  width: 10px;
-  height: 10px;
-  display: inline-block;
-  background-color: red;
-  height: 10px;
-  width: 10px;
-  margin-top: -5px;
-  margin-left: -5px;
-  border-radius: 5px;
 }

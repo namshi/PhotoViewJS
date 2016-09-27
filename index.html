@@ -7,13 +7,21 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
 </head>
 <body>
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.0/jquery.min.js"></script>
 <script src="./dist/build.js"></script>
-<div class="test">
-  <img src="https://pa.namshicdn.com/product/68/8181/4-zoom.jpg" alt="" class="image-zoom">
+<div class="photo-view">
+  <img src="https://pa.namshicdn.com/product/68/8181/1-zoom.jpg" alt="" class="image-zoom">
+</div>
+<div class="photo-view">
+  <img src="https://pa.namshicdn.com/product/68/8181/2-zoom.jpg" alt="" class="image-zoom">
+</div>
+<div class="photo-view">
+  <img src="https://pa.namshicdn.com/product/68/8181/3-zoom.jpg" alt="" class="image-zoom">
+</div>
+<div class="photo-view">
+  <img src="https://pa.namshicdn.com/product/68/8181/3-zoom.jpg" alt="" class="image-zoom">
 </div>
 <script>
-  var myImageZoom = new PhotoView({}).init('.test')
+  var myImageZoom = new PhotoView('.photo-view')
 </script>
 </body>
 </html>
