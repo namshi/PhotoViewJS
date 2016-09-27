@@ -4,7 +4,11 @@ import Hammer from 'hammerjs';
 
 class PhotoViewManager {
   constructor(options = {}) {
-    this.options = options;
+    const defaultOptions = {
+      maxScale: 3
+    };
+
+    this.options = Object.assign(defaultOptions, options);
     return this;
   }
 
@@ -29,23 +33,22 @@ class PhotoViewManager {
     this.scale = 1;
     this.deltaX = 0;
     this.deltaY = 0;
+    this.initialImageWidth = this.image.width;
+    this.lastImageWidth = this.initialImageWidth;
     return this;
   }
 
   _registerGestures() {
     const zoom = new Hammer.Tap({ event: 'zoom', taps: 2 });
-    const pan = new Hammer.Pan({ direction: Hammer.DIRECTION_ALL, threshold: 0 });
+    const pan = new Hammer.Pan({ direction: Hammer.DIRECTION_ALL, threshold: 10 });
     const pinch = new Hammer.Pinch();
-
-    pan.recognizeWith([pinch]);
-    pinch.requireFailure([pan]);
     this._manager.add([zoom, pan, pinch]);
   }
 
   _registerEvents() {
     this._manager.on('zoom', e => {
       let {x, y} = e.center;
-      this.scale = this.scale > 1 ? 1 : 3;
+      this.scale = this.scale > 1 ? 1 : this.options.maxScale;
       this.image.style.transition = 'transform 0.5s';
       this._transform(x, y, this.scale);
     });
@@ -53,7 +56,26 @@ class PhotoViewManager {
     this._manager.on('pinch', e => {
       this.image.style.transition = 'none';
       let {x, y} = e.center;
-      this._transform(x, y, e.scale);
+      let {deltaX, deltaY} = e;
+      
+      // Check to verity actual pinch.
+      if(deltaX === 0 && deltaY === 0) {
+        return;
+      }
+
+      let scale = (this.lastImageWidth * e.scale) / this.initialImageWidth;
+
+      if(scale> this.options.maxScale) {
+        scale = this.options.maxScale
+      } else if(scale < 1){
+        scale = 1;
+      }
+
+      this._transform(x, y, scale);
+    });
+
+    this._manager.on('pinchend', e => {
+        this.lastImageWidth = this.initialImageWidth * this.scale;
     });
 
     this._manager.on('panstart', e => {
@@ -81,8 +103,6 @@ class PhotoViewManager {
   }
 
   _transform(x, y, scale) {
-    scale = scale < 1 ? 1 : scale;
-
     if (scale === 1) {
       x = this.x; y = this.y;
     } else {
@@ -91,7 +111,7 @@ class PhotoViewManager {
     }
 
     this.image.style['transformOrigin'] = `${x}px ${y}px`;
-    this.image.style.transform = `scale(${scale})`;
+    this.image.style.transform = `scale3d(${scale},${scale},1)`;
 
     this.x = x;
     this.y = y;
