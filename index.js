@@ -5,7 +5,8 @@ import Hammer from 'hammerjs';
 class PhotoViewManager {
   constructor(options = {}) {
     const defaultOptions = {
-      maxScale: 3
+      maxScale: 3,
+      enableMultiZoom: false
     };
 
     this.options = Object.assign(defaultOptions, options);
@@ -34,7 +35,11 @@ class PhotoViewManager {
     this.deltaX = 0;
     this.deltaY = 0;
     this.initialImageWidth = this.image.width;
+    this.initialImageHeight = this.image.height;
     this.lastImageWidth = this.initialImageWidth;
+    this.flags = {
+      pinchAllowed: false
+    };
     return this;
   }
 
@@ -45,24 +50,53 @@ class PhotoViewManager {
     this._manager.add([zoom, pan, pinch]);
   }
 
+  _getZoomLevel(){
+    let scale;
+    
+    if(this.options.enableMultiZoom){
+      let midScale = this.options.maxScale/2;
+      scale = this.scale === 1 ?  midScale : ( this.scale === midScale ) ? this.options.maxScale : 1;
+    } else {
+      scale =  this.scale > 1 ? 1 : this.options.maxScale;  
+    }
+
+    return scale;
+  }
+
   _registerEvents() {
     this._manager.on('zoom', e => {
       let {x, y} = e.center;
-      this.scale = this.scale > 1 ? 1 : this.options.maxScale;
+      let scale = this._getZoomLevel();
       this.image.style.transition = 'transform 0.5s';
-      this._transform(x, y, this.scale);
+      this._transform(x, y, scale);
+      this.pinchX = x ;
+      this.pinchY = y ;
+      this._setImageWidth();
+    });
+
+    this._manager.on('pinchstart', e => {
+      clearTimeout(this.panTimer);
+      this._enableGesture('pan', false);
+
+      if( this.scale !==1 ){
+        this.flags.pinchAllowed = false;
+      } else {
+        this.flags.pinchAllowed = true;
+        let {x,y} = e.center;
+        this.pinchX = x ;
+        this.pinchY = y ;
+      }
     });
 
     this._manager.on('pinch', e => {
+      if(e.additionalEvent === 'pinchout' && !this.flags.pinchAllowed ){
+        return;
+      }
+      
       this.image.style.transition = 'none';
       let {x, y} = e.center;
       let {deltaX, deltaY} = e;
       
-      // Check to verity actual pinch.
-      if(deltaX === 0 && deltaY === 0) {
-        return;
-      }
-
       let scale = (this.lastImageWidth * e.scale) / this.initialImageWidth;
 
       if(scale> this.options.maxScale) {
@@ -71,11 +105,17 @@ class PhotoViewManager {
         scale = 1;
       }
 
-      this._transform(x, y, scale);
+      // Check to verity actual pinch.
+      if(deltaX === 0 && deltaY === 0 && scale !== 1) {
+        return;
+      }
+
+      requestAnimationFrame(_=>this._transform(this.pinchX, this.pinchY, scale));
     });
 
     this._manager.on('pinchend', e => {
-        this.lastImageWidth = this.initialImageWidth * this.scale;
+        this._setImageWidth();
+        this.panTimer = setTimeout( _=> this._enableGesture('pan', true), 500 );
     });
 
     this._manager.on('panstart', e => {
@@ -89,7 +129,7 @@ class PhotoViewManager {
 
       e.srcEvent.stopPropagation();
       e.srcEvent.preventDefault();
-
+    
       this.currentDeltaX = ( isNaN(this.deltaX) ? 0 : this.deltaX ) + e.deltaX;
       this.currentDeltaY = ( isNaN(this.deltaY) ? 0 : this.deltaY ) + e.deltaY;
       this.image.style.transition = 'none';
@@ -116,6 +156,26 @@ class PhotoViewManager {
     this.x = x;
     this.y = y;
     this.scale = scale;
+    this._onTransformEnd();
+  }
+
+  _onTransformEnd(){
+    if(this.scale <= 1){
+      this.deltaX = this.deltaY = 0;
+    }
+  }
+
+  _resetOrigin(){
+    this.x = this.initialImageWidth/2;
+    this.y = this.initialImageHeight/2;
+  }
+
+  _setImageWidth(){
+    this.lastImageWidth = this.initialImageWidth * this.scale;
+  }
+
+  _enableGesture( gesture, value ){
+    this._manager.get( gesture ).set({ enable: value });
   }
 
   _unregisterEvents() {
