@@ -37,9 +37,6 @@ class PhotoViewManager {
     this.initialImageWidth = this.image.width;
     this.initialImageHeight = this.image.height;
     this.lastImageWidth = this.initialImageWidth;
-    this.flags = {
-      pinchAllowed: false
-    };
     return this;
   }
 
@@ -47,7 +44,7 @@ class PhotoViewManager {
     const zoom = new Hammer.Tap({ event: 'zoom', taps: 2 });
     const pan = new Hammer.Pan({ direction: Hammer.DIRECTION_ALL, threshold: 10 });
     const pinch = new Hammer.Pinch();
-    this._manager.add([zoom, pan, pinch]);
+    this._manager.add([pinch, zoom, pan]);
   }
 
   _getZoomLevel(){
@@ -69,53 +66,32 @@ class PhotoViewManager {
       let scale = this._getZoomLevel();
       this.image.style.transition = 'transform 0.5s';
       this._transform(x, y, scale);
-      this.pinchX = x ;
-      this.pinchY = y ;
       this._setImageWidth();
     });
 
     this._manager.on('pinchstart', e => {
       clearTimeout(this.panTimer);
       this._enableGesture('pan', false);
-
-      if( this.scale !==1 ){
-        this.flags.pinchAllowed = false;
-      } else {
-        this.flags.pinchAllowed = true;
-        let {x,y} = e.center;
-        this.pinchX = x ;
-        this.pinchY = y ;
+      let {x,y} = e.center;
+      this.image.style.transition = 'transform 0.5s';
+      
+      if(this.scale === 1){
+        this.pinchX = x;
+        this.pinchY = y;
       }
     });
 
     this._manager.on('pinch', e => {
-      if(e.additionalEvent === 'pinchout' && !this.flags.pinchAllowed ){
-        return;
+      if(e.additionalEvent === 'pinchout'){
+        this._transform(this.pinchX, this.pinchY, this.options.maxScale);
+      } else if(e.additionalEvent === 'pinchin'){
+        this._transform(0,0,1);
       }
-      
-      this.image.style.transition = 'none';
-      let {x, y} = e.center;
-      let {deltaX, deltaY} = e;
-      
-      let scale = (this.lastImageWidth * e.scale) / this.initialImageWidth;
-
-      if(scale> this.options.maxScale) {
-        scale = this.options.maxScale
-      } else if(scale < 1){
-        scale = 1;
-      }
-
-      // Check to verity actual pinch.
-      if(deltaX === 0 && deltaY === 0 && scale !== 1) {
-        return;
-      }
-
-      requestAnimationFrame(_=>this._transform(this.pinchX, this.pinchY, scale));
     });
 
     this._manager.on('pinchend', e => {
         this._setImageWidth();
-        this.panTimer = setTimeout( _=> this._enableGesture('pan', true), 500 );
+        this.panTimer = setTimeout( _=> this._enableGesture('pan', true), 1000 );
     });
 
     this._manager.on('panstart', e => {
@@ -163,11 +139,6 @@ class PhotoViewManager {
     if(this.scale <= 1){
       this.deltaX = this.deltaY = 0;
     }
-  }
-
-  _resetOrigin(){
-    this.x = this.initialImageWidth/2;
-    this.y = this.initialImageHeight/2;
   }
 
   _setImageWidth(){
