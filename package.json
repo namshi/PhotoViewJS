@@ -1,6 +1,6 @@
 {
   "name": "PhotoView",
-  "version": "1.0.0",
+  "version": "0.1.0",
   "description": "PhotoView - Pan, PinchZoom and Swipe for mobile",
   "main": "dist/build.js",
   "scripts": {

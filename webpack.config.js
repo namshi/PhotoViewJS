@@ -6,6 +6,7 @@ module.exports = {
     output: {
         path: './dist',
         filename: 'build.js',
+        library: 'PhotoView',
         libraryTarget: 'umd'
     },
     devtool: 'source-map',
