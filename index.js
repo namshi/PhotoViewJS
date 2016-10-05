@@ -5,8 +5,9 @@ import Hammer from 'hammerjs';
 class PhotoViewManager {
   constructor(options = {}) {
     const defaultOptions = {
-      maxScale: 3,
-      enableMultiZoom: false
+      maxScale: 2,
+      enableMultiZoom: false,
+      snapToGrid: true
     };
 
     this.options = Object.assign(defaultOptions, options);
@@ -28,7 +29,7 @@ class PhotoViewManager {
       return;
     }
 
-    this._manager = new Hammer.Manager(this.image, {touchAction: 'pan-y'});
+    this._manager = new Hammer.Manager(this.image, { touchAction: 'pan-y' });
     this._registerGestures();
     this._registerEvents();
     this.scale = 1;
@@ -36,7 +37,8 @@ class PhotoViewManager {
     this.deltaY = 0;
     this.initialImageWidth = this.image.width;
     this.initialImageHeight = this.image.height;
-    this.lastImageWidth = this.initialImageWidth;
+    this.imageOffsetLeft = this.image.offsetLeft;
+    this.imageOffsetTop = this.image.offsetTop;
     return this;
   }
 
@@ -47,14 +49,14 @@ class PhotoViewManager {
     this._manager.add([pinch, zoom, pan]);
   }
 
-  _getZoomLevel(){
+  _getZoomLevel() {
     let scale;
-    
-    if(this.options.enableMultiZoom){
-      let midScale = this.options.maxScale/2;
-      scale = this.scale === 1 ?  midScale : ( this.scale === midScale ) ? this.options.maxScale : 1;
+
+    if (this.options.enableMultiZoom) {
+      let midScale = this.options.maxScale / 2;
+      scale = this.scale === 1 ? midScale : (this.scale === midScale) ? this.options.maxScale : 1;
     } else {
-      scale =  this.scale > 1 ? 1 : this.options.maxScale;  
+      scale = this.scale > 1 ? 1 : this.options.maxScale;
     }
 
     return scale;
@@ -64,38 +66,36 @@ class PhotoViewManager {
     this._manager.on('zoom', e => {
       let {x, y} = e.center;
       let scale = this._getZoomLevel();
-      this.image.style.transition = 'transform 0.5s';
+      this._setTransition(true);
       this._transform(x, y, scale);
-      this._setImageWidth();
     });
 
     this._manager.on('pinchstart', e => {
       clearTimeout(this.panTimer);
       this._enableGesture('pan', false);
-      let {x,y} = e.center;
-      this.image.style.transition = 'transform 0.5s';
-      
-      if(this.scale === 1){
+      let {x, y} = e.center;
+      this._setTransition(true);
+
+      if (this.scale === 1) {
         this.pinchX = x;
         this.pinchY = y;
       }
     });
 
     this._manager.on('pinch', e => {
-      if(e.additionalEvent === 'pinchout'){
+      if (e.additionalEvent === 'pinchout') {
         this._transform(this.pinchX, this.pinchY, this.options.maxScale);
-      } else if(e.additionalEvent === 'pinchin'){
-        this._transform(0,0,1);
+      } else if (e.additionalEvent === 'pinchin') {
+        this._transform(0, 0, 1);
       }
     });
 
     this._manager.on('pinchend', e => {
-        this._setImageWidth();
-        this.panTimer = setTimeout( _=> this._enableGesture('pan', true), 1000 );
+      this.panTimer = setTimeout(_ => this._enableGesture('pan', true), 1000);
     });
 
     this._manager.on('panstart', e => {
-      this.image.style.transition = 'none';
+      this._setTransition(false);
     });
 
     this._manager.on('pan', e => {
@@ -105,10 +105,15 @@ class PhotoViewManager {
 
       e.srcEvent.stopPropagation();
       e.srcEvent.preventDefault();
-    
-      this.currentDeltaX = ( isNaN(this.deltaX) ? 0 : this.deltaX ) + e.deltaX;
-      this.currentDeltaY = ( isNaN(this.deltaY) ? 0 : this.deltaY ) + e.deltaY;
-      this.image.style.transition = 'none';
+
+      this.currentDeltaX = (isNaN(this.deltaX) ? 0 : this.deltaX) + e.deltaX;
+      this.currentDeltaY = (isNaN(this.deltaY) ? 0 : this.deltaY) + e.deltaY;
+
+      if (this.options.snapToGrid) {
+        this._adjustSnapPositions();
+      }
+
+      this._setTransition(false);
       this.image.style.transform = `translate3d(${this.currentDeltaX}px, ${this.currentDeltaY}px, 0px) scale(${this.scale})`;
     });
 
@@ -118,12 +123,28 @@ class PhotoViewManager {
     })
   }
 
+  _adjustSnapPositions() {
+    if (this.currentDeltaX + this.imageOffsetLeft > this.x) {
+      this.currentDeltaX = this.x - this.imageOffsetLeft;
+    } else if (this.x - this.currentDeltaX + this.imageOffsetLeft > this.initialImageWidth) {
+      let adjustWidth = (this.x - this.currentDeltaX + this.imageOffsetLeft) - this.initialImageWidth;
+      this.currentDeltaX = (this.currentDeltaX + adjustWidth);
+    }
+
+    if (this.currentDeltaY + this.imageOffsetTop > this.y) {
+      this.currentDeltaY = (this.y - this.imageOffsetTop);
+    } else if (this.y - this.currentDeltaY + this.imageOffsetTop > this.initialImageHeight) {
+      let adjustHeight = (this.y - this.currentDeltaY + this.imageOffsetTop) - this.initialImageHeight;
+      this.currentDeltaY = this.currentDeltaY + adjustHeight;
+    }
+  }
+
   _transform(x, y, scale) {
     if (scale === 1) {
       x = this.x; y = this.y;
     } else {
-      x -= this.image.offsetLeft;
-      y -= this.image.offsetTop;
+      x -= this.imageOffsetLeft;
+      y -= this.imageOffsetTop;
     }
 
     this.image.style['transformOrigin'] = `${x}px ${y}px`;
@@ -135,18 +156,18 @@ class PhotoViewManager {
     this._onTransformEnd();
   }
 
-  _onTransformEnd(){
-    if(this.scale <= 1){
+  _onTransformEnd() {
+    if (this.scale <= 1) {
       this.deltaX = this.deltaY = 0;
     }
   }
 
-  _setImageWidth(){
-    this.lastImageWidth = this.initialImageWidth * this.scale;
+  _enableGesture(gesture, value) {
+    this._manager.get(gesture).set({ enable: value });
   }
 
-  _enableGesture( gesture, value ){
-    this._manager.get( gesture ).set({ enable: value });
+  _setTransition(value) {
+    this.image.style.transition = value ? 'transform 0.5s' : 'none';
   }
 
   _unregisterEvents() {
