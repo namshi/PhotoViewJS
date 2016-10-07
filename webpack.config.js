@@ -1,7 +1,7 @@
 var webpack = require('webpack');
 
 module.exports = {
-    entry: './index.js',
+    entry: ['babel-polyfill','./index.js'],
     target: 'node',
     output: {
         path: './dist',
@@ -18,5 +18,9 @@ module.exports = {
             exclude: /node_modules/
         }]
     },
-    plugins: []
+    plugins: [
+      new webpack.DefinePlugin({
+        global: {}
+      })
+    ]
 }
