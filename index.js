@@ -1,5 +1,6 @@
 'use strict';
 
+import 'babel-polyfill';
 import Hammer from 'hammerjs';
 
 class PhotoViewManager {
@@ -35,10 +36,6 @@ class PhotoViewManager {
     this.scale = 1;
     this.deltaX = 0;
     this.deltaY = 0;
-    this.initialImageWidth = this.image.width;
-    this.initialImageHeight = this.image.height;
-    this.imageOffsetLeft = this.image.offsetLeft;
-    this.imageOffsetTop = this.image.offsetTop;
     return this;
   }
 
@@ -124,17 +121,20 @@ class PhotoViewManager {
   }
 
   _adjustSnapPositions() {
-    if (this.currentDeltaX + this.imageOffsetLeft > this.x) {
-      this.currentDeltaX = this.x - this.imageOffsetLeft;
-    } else if (this.x - this.currentDeltaX + this.imageOffsetLeft > this.initialImageWidth) {
-      let adjustWidth = (this.x - this.currentDeltaX + this.imageOffsetLeft) - this.initialImageWidth;
+    let imageOffsetLeft = this.image.offsetLeft;
+    let imageOffsetTop = this.image.offsetTop;
+
+    if (this.currentDeltaX + imageOffsetLeft > this.x) {
+      this.currentDeltaX = this.x - imageOffsetLeft;
+    } else if (this.x - this.currentDeltaX + imageOffsetLeft > this.image.width) {
+      let adjustWidth = (this.x - this.currentDeltaX + imageOffsetLeft) - this.image.width;
       this.currentDeltaX = (this.currentDeltaX + adjustWidth);
     }
 
-    if (this.currentDeltaY + this.imageOffsetTop > this.y) {
-      this.currentDeltaY = (this.y - this.imageOffsetTop);
-    } else if (this.y - this.currentDeltaY + this.imageOffsetTop > this.initialImageHeight) {
-      let adjustHeight = (this.y - this.currentDeltaY + this.imageOffsetTop) - this.initialImageHeight;
+    if (this.currentDeltaY + imageOffsetTop > this.y) {
+      this.currentDeltaY = (this.y - imageOffsetTop);
+    } else if (this.y - this.currentDeltaY + imageOffsetTop > this.image.height) {
+      let adjustHeight = (this.y - this.currentDeltaY + imageOffsetTop) - this.image.height;
       this.currentDeltaY = this.currentDeltaY + adjustHeight;
     }
   }
@@ -143,8 +143,8 @@ class PhotoViewManager {
     if (scale === 1) {
       x = this.x; y = this.y;
     } else {
-      x -= this.imageOffsetLeft;
-      y -= this.imageOffsetTop;
+      x -= this.image.offsetLeft;
+      y -= this.image.offsetTop;
     }
 
     this.image.style['transformOrigin'] = `${x}px ${y}px`;
@@ -185,7 +185,7 @@ class PhotoViewManager {
 class PhotoView {
   constructor(selector, options = {}) {
     this.instances = [];
-    document.querySelectorAll(selector).forEach(item => {
+    Array.from(document.querySelectorAll(selector)).forEach(item => {
       this.instances.push(
         new PhotoViewManager(options).init(item)
       );
