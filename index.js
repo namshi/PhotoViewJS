@@ -17,14 +17,12 @@ class PhotoViewManager {
 
   init(selector) {
     let container = typeof selector === 'string' ? document.querySelectorAll(selector)[0] : selector;
-
     if (!container) {
       console.warn(`You must provide a valid container for PhotoView (selector "${selector}" did not match any element)`);
       return;
     }
 
     this.image = container.querySelectorAll('img')[0];
-
     if (!this.image) {
       console.warn(`You must have a valid img tag inside your container`);
       return;
@@ -48,7 +46,6 @@ class PhotoViewManager {
 
   _getZoomLevel() {
     let scale;
-
     if (this.options.enableMultiZoom) {
       let midScale = this.options.maxScale / 2;
       scale = this.scale === 1 ? midScale : (this.scale === midScale) ? this.options.maxScale : 1;
@@ -59,12 +56,36 @@ class PhotoViewManager {
     return scale;
   }
 
+  imageTouchHandler(e) {
+      e.stopPropagation();
+      e.preventDefault();
+  }
+
+  disableTouchEvents() {
+    this.image.addEventListener('touchmove',this.imageTouchHandler, false);
+    this.image.addEventListener('touchstart',this.imageTouchHandler, false);
+  }
+
+  enableTouchEvents() {
+    this.image.removeEventListener('touchmove',this.imageTouchHandler, false);
+    this.image.removeEventListener('touchstart',this.imageTouchHandler, false);
+  }
+
+  handleTouchEvent() {
+    if(this.scale > 1){
+      this.disableTouchEvents();
+    } else {
+      this.enableTouchEvents();
+    }
+  }
+
   _registerEvents() {
     this._manager.on('zoom', e => {
       let {x, y} = e.center;
       let scale = this._getZoomLevel();
       this._setTransition(true);
       this._transform(x, y, scale);
+      this.handleTouchEvent();
     });
 
     this._manager.on('pinchstart', e => {
@@ -77,6 +98,7 @@ class PhotoViewManager {
         this.pinchX = x;
         this.pinchY = y;
       }
+
     });
 
     this._manager.on('pinch', e => {
@@ -85,6 +107,8 @@ class PhotoViewManager {
       } else if (e.additionalEvent === 'pinchin') {
         this._transform(0, 0, 1);
       }
+
+      this.handleTouchEvent();
     });
 
     this._manager.on('pinchend', e => {
@@ -101,11 +125,8 @@ class PhotoViewManager {
       }
 
       e.srcEvent.stopPropagation();
-      e.srcEvent.preventDefault();
-
       this.currentDeltaX = (isNaN(this.deltaX) ? 0 : this.deltaX) + e.deltaX;
       this.currentDeltaY = (isNaN(this.deltaY) ? 0 : this.deltaY) + e.deltaY;
-
       if (this.options.snapToGrid) {
         this._adjustSnapPositions();
       }
@@ -117,13 +138,12 @@ class PhotoViewManager {
     this._manager.on('panend', e => {
       this.deltaX = this.currentDeltaX;
       this.deltaY = this.currentDeltaY;
-    })
+    });
   }
 
   _adjustSnapPositions() {
     let imageOffsetLeft = this.image.offsetLeft;
     let imageOffsetTop = this.image.offsetTop;
-
     if (this.currentDeltaX + imageOffsetLeft > this.x) {
       this.currentDeltaX = this.x - imageOffsetLeft;
     } else if (this.x - this.currentDeltaX + imageOffsetLeft > this.image.width) {
@@ -137,6 +157,7 @@ class PhotoViewManager {
       let adjustHeight = (this.y - this.currentDeltaY + imageOffsetTop) - this.image.height;
       this.currentDeltaY = this.currentDeltaY + adjustHeight;
     }
+
   }
 
   _transform(x, y, scale) {
@@ -149,7 +170,6 @@ class PhotoViewManager {
 
     this.image.style['transformOrigin'] = `${x}px ${y}px`;
     this.image.style.transform = `scale3d(${scale},${scale},1)`;
-
     this.x = x;
     this.y = y;
     this.scale = scale;
@@ -176,6 +196,10 @@ class PhotoViewManager {
     this._manager.off('zoom');
   }
 
+  reset() {
+    this.image.style.transform = 'none';
+  }
+
   destroy() {
     this._unregisterEvents();
     this._manager = null;
@@ -190,12 +214,20 @@ class PhotoView {
         new PhotoViewManager(options).init(item)
       );
     });
+
+  }
+
+  reset() {
+    this.instances.forEach(photoViewInstance => {
+      photoViewInstance.reset();
+    });
   }
 
   destroy() {
     this.instances.forEach(photoViewInstance => {
       photoViewInstance.destroy();
     });
+
     this.instances = null;
   }
 }
