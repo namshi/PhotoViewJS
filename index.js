@@ -1,6 +1,5 @@
 'use strict';
 
-import 'babel-polyfill';
 import Hammer from 'hammerjs';
 
 class PhotoViewManager {
@@ -209,7 +208,9 @@ class PhotoViewManager {
 class PhotoView {
   constructor(selector, options = {}) {
     this.instances = [];
-    Array.from(document.querySelectorAll(selector)).forEach(item => {
+    let slice = Array.prototype.slice;
+    let elements = slice.call(document.querySelectorAll(selector));
+    elements.forEach(item => {
       this.instances.push(
         new PhotoViewManager(options).init(item)
       );

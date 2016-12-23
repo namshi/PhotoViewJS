@@ -1,7 +1,7 @@
 var webpack = require('webpack');
 
 module.exports = {
-    entry: ['babel-polyfill','./index.js'],
+    entry: ['./index.js'],
     target: 'node',
     output: {
         path: './dist',
