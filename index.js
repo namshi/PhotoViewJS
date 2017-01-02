@@ -7,7 +7,8 @@ class PhotoViewManager {
     const defaultOptions = {
       maxScale: 2,
       enableMultiZoom: false,
-      snapToGrid: true
+      snapToGrid: true,
+      tapToZoom: false
     };
 
     this.options = Object.assign(defaultOptions, options);
@@ -37,10 +38,18 @@ class PhotoViewManager {
   }
 
   _registerGestures() {
-    const zoom = new Hammer.Tap({ event: 'zoom', taps: 2 });
+    const tap = new Hammer.Tap({ event: 'zoom', taps: 1 });
+    const doubleTap = new Hammer.Tap({ event: 'zoom', taps: 2 });
     const pan = new Hammer.Pan({ direction: Hammer.DIRECTION_ALL, threshold: 10 });
     const pinch = new Hammer.Pinch();
-    this._manager.add([pinch, zoom, pan]);
+    let gestures = [pinch, doubleTap, pan];
+    if(this.options.tapToZoom){
+      doubleTap.recognizeWith(tap);
+      tap.requireFailure(doubleTap);
+      gestures.splice(2,-1, tap);
+    }
+
+    this._manager.add(gestures);
   }
 
   _getZoomLevel() {
