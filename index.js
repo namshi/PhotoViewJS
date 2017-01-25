@@ -1,6 +1,7 @@
 'use strict';
 
 import Hammer from 'hammerjs';
+import CustomEvent from 'custom-event';
 
 class PhotoViewManager {
   constructor(options = {}) {
@@ -36,7 +37,18 @@ class PhotoViewManager {
     this.deltaY = 0;
     return this;
   }
+  _dispatchEvent(type, detail) {
+    let event = new CustomEvent(
+        type,
+        {
+            bubbles: true,
+            cancelable: true,
+            detail: detail
+        }
+    );
 
+    document.dispatchEvent(event);
+  }
   _registerGestures() {
     const tap = new Hammer.Tap({ event: 'zoom', taps: 1 });
     const doubleTap = new Hammer.Tap({ event: 'zoom', taps: 2 });
@@ -64,27 +76,8 @@ class PhotoViewManager {
     return scale;
   }
 
-  imageTouchHandler(e) {
-      e.stopPropagation();
-      e.preventDefault();
-  }
-
-  disableTouchEvents() {
-    this.image.addEventListener('touchmove',this.imageTouchHandler, false);
-    this.image.addEventListener('touchstart',this.imageTouchHandler, false);
-  }
-
-  enableTouchEvents() {
-    this.image.removeEventListener('touchmove',this.imageTouchHandler, false);
-    this.image.removeEventListener('touchstart',this.imageTouchHandler, false);
-  }
-
   handleTouchEvent() {
-    if(this.scale > 1){
-      this.disableTouchEvents();
-    } else {
-      this.enableTouchEvents();
-    }
+    this._dispatchEvent('photoview.scale.changed', {scale : this.scale})
   }
 
   _registerEvents() {

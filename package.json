@@ -41,6 +41,7 @@
   },
   "dependencies": {
     "babel-polyfill": "^6.16.0",
+    "custom-event": "^1.0.1",
     "hammerjs": "^2.0.8"
   }
 }
