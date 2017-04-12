@@ -18,6 +18,13 @@ module.exports = {
             exclude: /node_modules/
         }]
     },
+    externals: {
+      "hammerjs": {
+        commonjs: "hammerjs",
+        commonjs2: "hammerjs",
+        root: "Hammer"
+      }
+    },
     plugins: [
       new webpack.DefinePlugin({
         global: {}
