@@ -1,6 +1,6 @@
 var test = require('ava');
-var myModule = require('../dist/build');
+var PhotoView = require('../dist/build');
 
-test('the log method', t => {
-    t.is(myModule.log('hi'), 'Logging the message : hi');
+test('PhotoView exist', t => {
+  t.is(typeof PhotoView, 'function', 'PhotoView doesnt exist');
 });
