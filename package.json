@@ -40,7 +40,9 @@
   },
   "dependencies": {
     "babel-polyfill": "^6.16.0",
-    "custom-event": "^1.0.1",
+    "custom-event": "^1.0.1"
+  },
+  "peerDependencies": {
     "hammerjs": "^2.0.8"
   }
 }
