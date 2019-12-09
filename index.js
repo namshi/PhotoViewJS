@@ -197,8 +197,20 @@ class PhotoViewManager {
     this._manager.off('zoom');
   }
 
-  reset() {
-    this.image.style.transform = 'none';
+  reset({ animate = false } = {}) {
+    if(animate) {
+       this._setTransition(true);
+       this._transform(0, 0, 1);
+      this._setTransition(false);
+    } else {
+       this.image.style.transform = 'none';	
+    } 
+    this.resetScale();
+  }
+
+  resetScale() {
+    this.scale = 1;
+    this._dispatchEvent('photoview.scale.changed', {scale : this.scale})
   }
 
   destroy() {
