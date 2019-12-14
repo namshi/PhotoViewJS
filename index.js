@@ -222,14 +222,12 @@ class PhotoViewManager {
 class PhotoView {
   constructor(selector, options = {}) {
     this.instances = [];
-    let slice = Array.prototype.slice;
-    let elements = slice.call(document.querySelectorAll(selector));
+    let elements = document.querySelectorAll(selector);
     elements.forEach(item => {
       this.instances.push(
         new PhotoViewManager(options).init(item)
       );
     });
-
   }
 
   reset() {
