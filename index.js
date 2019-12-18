@@ -197,7 +197,7 @@ class PhotoViewManager {
     this._manager.off('zoom');
   }
 
-  reset({ animate = false } = {}) {
+  reset(animate) {
     if(animate) {
        this._setTransition(true);
        this._transform(0, 0, 1);
@@ -229,12 +229,11 @@ class PhotoView {
         new PhotoViewManager(options).init(item)
       );
     });
-
   }
 
-  reset() {
+  reset({ animate = false } = {}) {
     this.instances.forEach(photoViewInstance => {
-      photoViewInstance.reset();
+      photoViewInstance.reset(animate);
     });
   }
 
